@@ -1,0 +1,97 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>發一崇德台中道場資訊網</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="本系統已導入 PWA，可安裝至桌面使用。">
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#e0f7fa" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <style>
+    body {
+      font-family: sans-serif; text-align: center; margin: 0; padding: 2em;
+      background: #f0f4f8; display: flex; flex-direction: column;
+      justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box;
+    }
+    #message { font-size: 1.2em; color: #333; margin-bottom: 1em; }
+    .spinner {
+      width: 48px; height: 48px; margin: 2em auto; border: 6px solid #ccc;
+      border-top: 6px solid #3f51b5; border-radius: 50%; animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .action-button {
+      background: #3f51b5; color: #fff; padding: 10px 20px; border: none;
+      border-radius: 5px; font-size: 1em; cursor: pointer; margin-top: 1em;
+    }
+    .action-button:hover { background: #303f9f; }
+  </style>
+  <script>
+const SITE_URL = "https://sites.google.com/view/fycd-tc/";
+
+function detectClient () {
+  const ua = navigator.userAgent;
+  const isIOS      = /iPhone|iPad|iPod/i.test(ua) || (ua.includes('Mac') && 'ontouchend' in document);
+  const isAndroid  = /Android/i.test(ua);
+  const isChrome   = /Chrome/.test(ua) && !/Edg/.test(ua);
+  const isEdge     = /Edg/.test(ua);
+  const isSafari   = /Safari/.test(ua) && !isChrome && !isEdge;
+  return {
+    isIOS, isAndroid, isChrome, isEdge, isSafari,
+    inPWA: window.matchMedia('(display-mode: standalone)').matches ||
+           window.matchMedia('(display-mode: fullscreen)').matches ||
+           navigator.standalone === true
+  };
+}
+
+window.addEventListener('load', () => {
+  const c       = detectClient();
+  const msg     = document.getElementById('message');
+  const spinner = document.querySelector('.spinner');
+  const body    = document.body;
+
+  /* ───── ① 已安裝 PWA ───── */
+  if (c.inPWA) {
+    msg.textContent = 'App 正在啟動…';
+    window.location.href = SITE_URL;
+    return;                         // 後續程式不再執行
+  }
+
+  /* ───── ② 未安裝 (!PWA) ───── */
+  let hint = '📲 建議安裝至桌面，享受全螢幕體驗。';
+  if (c.isIOS && c.isSafari) {
+    hint = '📲 在 Safari 底部「分享」→『加入主畫面』安裝。';
+  } else if (c.isAndroid && (c.isChrome || c.isEdge)) {
+    hint = '📲 點網址列右側「安裝圖示」或選單「加入主畫面」。';
+  }
+
+  msg.innerHTML = `
+    👋 歡迎使用<br><br>${hint}<br>
+    將在<strong>20 秒</strong>後自動跳轉網站，<br>
+    或點擊下方按鈕立即前往。
+  `;
+  spinner.style.display = 'none';
+
+  /* 立即前往按鈕 */
+  const btn = document.createElement('button');
+  btn.className = 'action-button';
+  btn.textContent = '立即前往網站';
+  btn.onclick = () => window.location.href = SITE_URL;
+  body.appendChild(btn);
+
+  /* 20 秒後自動跳轉（頁面仍在前景時） */
+  setTimeout(() => {
+    if (!document.hidden) window.location.href = SITE_URL;
+  }, 20000);
+});
+
+/* 註冊 Service Worker */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+</body>
+</html>
