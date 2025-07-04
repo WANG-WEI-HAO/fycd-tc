@@ -1,6 +1,6 @@
 {
   "name": "發一崇德台中道場資訊網",
-  "short_name": "道場資訊網",
+  "short_name": "台中資訊網",
   "start_url": "./index.html",
   "description": "本系統已導入 Progressive Web App，可安裝至桌面使用。",
   "display": "fullscreen",
