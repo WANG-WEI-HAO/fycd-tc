@@ -25,7 +25,6 @@
 
   <!--─ 核心樣式 ─-->
   <style>
-    /* 全程禁用橡皮筋回彈與縮放 ──*/
     html,body{
       overscroll-behavior: none;
       touch-action: none;
@@ -43,109 +42,135 @@
     .action-button{background:#3f51b5;color:#fff;padding:10px 20px;border:none;border-radius:5px;
       font-size:1em;cursor:pointer;margin-top:1em}
     .action-button:hover{background:#303f9f}
+    #update-notice{
+      display:none;
+      position:fixed;bottom:1em;left:50%;
+      transform:translateX(-50%);
+      background:#ff5722;color:#fff;
+      padding:10px 20px;border-radius:5px;
+      cursor:pointer;z-index:9999;
+    }
   </style>
 </head>
 <body>
   <div class="spinner"></div>
   <div id="message">🔧 正在載入頁面…</div>
+  <div id="update-notice">🔄 新版本可用，點擊更新！</div>
 
   <script>
-  /*－－ 目標網址 －－*/
-  const SITE_URL = "https://sites.google.com/view/fycd-tc/";
+    const SITE_URL = "https://sites.google.com/view/fycd-tc/";
 
-  /*－－ 瀏覽器 / 裝置偵測 －－*/
-  function detectClient(){
-    const ua = navigator.userAgent;
-    const isIOS   = /iPhone|iPad|iPod/i.test(ua)|| (ua.includes('Mac') && 'ontouchend' in document);
-    const isAnd   = /Android/i.test(ua);
-    const isChr   = /Chrome\/\d+/i.test(ua)&&!ua.includes('Edg/');
-    const isEdg   = /Edg\/\d+/i.test(ua);
-    const isFx    = /Firefox\/\d+/i.test(ua);
-    const isSaf   = /Safari\/\d+/i.test(ua)&&!isChr&&!isEdg;
-    return {
-      isIOS,isAnd,isChr,isEdg,isFx,isSaf,
-      inPWA: matchMedia('(display-mode: standalone)').matches||
-             matchMedia('(display-mode: fullscreen)').matches||
-             navigator.standalone===true
-    };
-  }
-
-  /*－－ 進入瀏覽器全螢幕（非 PWA 時保險用）－－*/
-  function requestFull(){
-    const el=document.documentElement;
-    const req= el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen||el.msRequestFullscreen;
-    if(req) req.call(el);
-  }
-
-  window.addEventListener('load',()=>{
-    const c = detectClient();
-    const msg=document.getElementById('message');
-    document.addEventListener('click',requestFull,{once:true}); // 首次點擊即嘗試全螢幕
-
-    /* 已安裝 → 直接跳 */
-    if(c.inPWA){
-      msg.textContent='App 正在啟動…';
-      window.location.href=SITE_URL;
-      return;
+    /*－－ 瀏覽器 / 裝置偵測 －－*/
+    function detectClient(){
+      const ua = navigator.userAgent;
+      const isIOS   = /iPhone|iPad|iPod/i.test(ua)|| (ua.includes('Mac') && 'ontouchend' in document);
+      const isAnd   = /Android/i.test(ua);
+      const isChr   = /Chrome\/\d+/i.test(ua)&&!ua.includes('Edg/');
+      const isEdg   = /Edg\/\d+/i.test(ua);
+      const isFx    = /Firefox\/\d+/i.test(ua);
+      const isSaf   = /Safari\/\d+/i.test(ua)&&!isChr&&!isEdg;
+      return {
+        isIOS,isAnd,isChr,isEdg,isFx,isSaf,
+        inPWA: matchMedia('(display-mode: standalone)').matches||
+               matchMedia('(display-mode: fullscreen)').matches||
+               navigator.standalone===true
+      };
     }
 
-    /* 安裝提示 */
-    let hint='📲 建議安裝至桌面，享受全螢幕體驗。';
-    if(c.isIOS&&c.isSaf)      hint='📲 在 Safari 底部「分享」→『加入主畫面』安裝。';
-    else if(c.isAnd&&(c.isChr||c.isEdg))
-                              hint='📲 點網址列右側「安裝圖示」或選單「加入主畫面」。';
-    else if(c.isFx)           hint='🦊 Firefox 可用「⋮ 選單→安裝」或手動加入書籤。';
+    function requestFull(){
+      const el=document.documentElement;
+      const req= el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen||el.msRequestFullscreen;
+      if(req) req.call(el);
+    }
 
-    msg.innerHTML=`👋 歡迎安裝台中道場資訊網<br><br>${hint}<br>
-                   將在<strong>20 秒</strong>後自動跳轉網站，<br>
-                   或點擊下方按鈕立即前往。`;
-    document.querySelector('.spinner').style.display='none';
+    window.addEventListener('load',()=>{
+      const c = detectClient();
+      const msg=document.getElementById('message');
+      document.addEventListener('click',requestFull,{once:true}); // 首次點擊全螢幕
 
-    const btn=document.createElement('button');
-btn.className='action-button';
-btn.textContent='立即前往網站';
-btn.onclick = () => {
-  const newWin = window.open(
-    SITE_URL,
-    '_blank',
-    'fullscreen=yes,scrollbars=yes,resizable=yes'
-  );
-  if (!newWin) window.location.href = SITE_URL; // 阻擋 fallback
-};
-document.body.appendChild(btn);
+      /* 已安裝 → 直接跳 */
+      if(c.inPWA){
+        msg.textContent='App 正在啟動…';
+        window.location.href=SITE_URL;
+        return;
+      }
 
-/*－－ iOS Safari 安裝提示按鈕 －－*/
-if(c.isIOS && c.isSaf){
-  const iosBtn = document.createElement('button');
-  iosBtn.className='action-button';
-  iosBtn.textContent='安裝到主畫面';
-  iosBtn.onclick = () => {
-    alert('請點選 Safari 底部「分享」→「加入主畫面」即可安裝');
-  };
-  document.body.appendChild(iosBtn);
-}
+      /* 安裝提示文字 */
+      let hint='📲 建議安裝至桌面，享受全螢幕體驗。';
+      if(c.isIOS&&c.isSaf) hint='📲 在 Safari 底部「分享」→『加入主畫面』安裝。';
+      else if(c.isAnd&&(c.isChr||c.isEdg)) hint='📲 點網址列右側「安裝圖示」或選單「加入主畫面」。';
+      else if(c.isFx) hint='🦊 Firefox 可用「⋮ 選單→安裝」或手動加入書籤。';
 
-/*－－ Chrome / Edge / Firefox 安裝按鈕 －－*/
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  const installBtn = document.createElement('button');
-  installBtn.textContent = '安裝台中道場資訊網';
-  installBtn.className = 'action-button';
-  installBtn.onclick = async () => {
-    deferredPrompt.prompt();
-    const choice = await deferredPrompt.userChoice;
-    console.log(`使用者選擇: ${choice.outcome}`);
-    deferredPrompt = null;
-  };
-  document.body.appendChild(installBtn);
-});
+      msg.innerHTML=`👋 歡迎安裝台中道場資訊網<br><br>${hint}<br>
+                     將在<strong>20 秒</strong>後自動跳轉網站，<br>
+                     或點擊下方按鈕立即前往。`;
+      document.querySelector('.spinner').style.display='none';
 
-  /*－－ 註冊 SW －－*/
-  if('serviceWorker'in navigator){
-    navigator.serviceWorker.register('service-worker.js');
-  }
+      /* 前往網站按鈕 */
+      const btn=document.createElement('button');
+      btn.className='action-button';
+      btn.textContent='立即前往網站';
+      btn.onclick = () => {
+        const newWin = window.open(
+          SITE_URL,
+          '_blank',
+          'fullscreen=yes,scrollbars=yes,resizable=yes'
+        );
+        if (!newWin) window.location.href = SITE_URL;
+      };
+      document.body.appendChild(btn);
+
+      /* iOS Safari 安裝按鈕 */
+      if(c.isIOS && c.isSaf){
+        const iosBtn = document.createElement('button');
+        iosBtn.className='action-button';
+        iosBtn.textContent='安裝到主畫面';
+        iosBtn.onclick = () => {
+          alert('請點選 Safari 底部「分享」→「加入主畫面」即可安裝');
+        };
+        document.body.appendChild(iosBtn);
+      }
+
+      /* Chrome / Edge / Firefox 安裝按鈕 */
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', e => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const installBtn = document.createElement('button');
+        installBtn.textContent = '安裝台中道場資訊網';
+        installBtn.className = 'action-button';
+        installBtn.onclick = async () => {
+          deferredPrompt.prompt();
+          const choice = await deferredPrompt.userChoice;
+          console.log(`使用者選擇: ${choice.outcome}`);
+          deferredPrompt = null;
+        };
+        document.body.appendChild(installBtn);
+      });
+
+      /* 自動跳轉 fallback */
+      setTimeout(()=>{ if(!document.hidden) window.location.href=SITE_URL; },20000);
+    });
+
+    /*－－ Service Worker 註冊與更新監聽 －－*/
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('service-worker.js').then(reg => {
+        console.log('Service Worker 註冊成功', reg);
+
+        reg.addEventListener('updatefound', () => {
+          const newSW = reg.installing;
+          newSW.addEventListener('statechange', () => {
+            if(newSW.state === 'installed' && navigator.serviceWorker.controller){
+              // 顯示更新提示
+              const notice = document.getElementById('update-notice');
+              notice.style.display = 'block';
+              notice.onclick = () => window.location.reload();
+            }
+          });
+        });
+      }).catch(err => console.error('SW 註冊失敗', err));
+    }
+
   </script>
 </body>
 </html>
