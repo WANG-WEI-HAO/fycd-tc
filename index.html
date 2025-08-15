@@ -110,6 +110,7 @@
 
   <script>
     const SITE_URL = "https://sites.google.com/view/fycd-tc/";
+    const container = document.querySelector('.glass-container');
 
     function detectClient(){
       const ua = navigator.userAgent;
@@ -135,11 +136,9 @@
 
     window.addEventListener('load',()=>{
       const c = detectClient();
-      const msg = document.getElementById('message');
       document.addEventListener('click',requestFull,{once:true});
 
       if(c.inPWA){
-        msg.textContent='App 正在啟動…';
         window.location.href=SITE_URL;
         return;
       }
@@ -149,50 +148,58 @@
       else if(c.isAnd&&(c.isChr||c.isEdg)) hint='📲 點網址列右側「安裝圖示」或選單「加入主畫面」。';
       else if(c.isFx) hint='🦊 Firefox 可用「⋮ 選單→安裝」或手動加入書籤。';
 
-      msg.innerHTML=`👋 歡迎安裝台中道場資訊網<br><br>${hint}<br>
+      document.getElementById('message').innerHTML=`👋 歡迎安裝台中道場資訊網<br><br>${hint}<br>
                      將在<strong>20 秒</strong>後自動跳轉網站，<br>
                      或點擊下方按鈕立即前往。`;
 
       document.querySelector('.spinner').style.display='none';
 
-      const container = document.querySelector('.glass-container');
+      // 已有按鈕就不重複創建
+      if(!document.getElementById('go-site-btn')){
+        const btn = document.createElement('button');
+        btn.id = 'go-site-btn';
+        btn.className='action-button';
+        btn.textContent='立即前往網站';
+        btn.onclick = () => {
+          const newWin = window.open(SITE_URL,'_blank','fullscreen=yes,scrollbars=yes,resizable=yes');
+          if(!newWin) window.location.href = SITE_URL;
+        };
+        container.appendChild(btn);
+      }
 
-      const btn = document.createElement('button');
-      btn.className='action-button';
-      btn.textContent='立即前往網站';
-      btn.onclick = () => {
-        const newWin = window.open(SITE_URL,'_blank','fullscreen=yes,scrollbars=yes,resizable=yes');
-        if (!newWin) window.location.href = SITE_URL;
-      };
-      container.appendChild(btn);
-
-      if(c.isIOS && c.isSaf){
+      // iOS 安裝按鈕
+      if(c.isIOS && c.isSaf && !document.getElementById('ios-install-btn')){
         const iosBtn = document.createElement('button');
+        iosBtn.id = 'ios-install-btn';
         iosBtn.className='action-button';
         iosBtn.textContent='安裝到主畫面';
-        iosBtn.onclick=()=> alert('請點選 Safari 底部「分享」→「加入主畫面」即可安裝');
+        iosBtn.onclick = ()=> alert('請點選 Safari 底部「分享」→「加入主畫面」即可安裝');
         container.appendChild(iosBtn);
       }
 
+      // Chrome / Edge 安裝
       let deferredPrompt;
       window.addEventListener('beforeinstallprompt', e=>{
         e.preventDefault();
         deferredPrompt = e;
-        const installBtn = document.createElement('button');
-        installBtn.textContent='安裝台中道場資訊網';
-        installBtn.className='action-button';
-        installBtn.onclick = async ()=>{
-          deferredPrompt.prompt();
-          const choice = await deferredPrompt.userChoice;
-          console.log(`使用者選擇: ${choice.outcome}`);
-          deferredPrompt = null;
-        };
-        container.appendChild(installBtn);
+        if(!document.getElementById('install-btn')){
+          const installBtn = document.createElement('button');
+          installBtn.id='install-btn';
+          installBtn.className='action-button';
+          installBtn.textContent='安裝台中道場資訊網';
+          installBtn.onclick = async ()=>{
+            deferredPrompt.prompt();
+            const choice = await deferredPrompt.userChoice;
+            deferredPrompt = null;
+          };
+          container.appendChild(installBtn);
+        }
       });
 
       setTimeout(()=>{ if(!document.hidden) window.location.href=SITE_URL; },20000);
     });
 
+    // 註冊 Service Worker 並檢查新版本
     if('serviceWorker' in navigator){
       navigator.serviceWorker.register('service-worker.js').then(reg=>{
         console.log('SW 註冊成功', reg);
