@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>發一崇德台中道場資訊網</title>
 
   <!-- Viewport 與全螢幕 -->
@@ -23,6 +23,7 @@
       background-size: 400% 400%;
       animation: gradientBG 15s ease infinite;
       overflow:hidden;
+      color:white;
     }
     @keyframes gradientBG{
       0%{background-position:0% 50%}
@@ -30,36 +31,61 @@
       100%{background-position:0% 50%}
     }
 
-    /* 玻璃面板 */
+    /* 載入動畫容器 */
+    .loader-container{
+      position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
+    }
+
+    /* 線條旋轉動畫 */
+    .spinner {
+      width: 60px;
+      height: 60px;
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .spinner div{
+      transform-origin: 30px 30px;
+      animation: spin 1.2s linear infinite;
+      position: absolute;
+      top: 0; left: 0;
+      width: 6px; height: 18px;
+      background: rgba(255,255,255,0.8);
+      border-radius: 3px;
+    }
+    .spinner div:nth-child(1){ transform: rotate(0deg); animation-delay: 0s; }
+    .spinner div:nth-child(2){ transform: rotate(30deg); animation-delay: -0.1s; }
+    .spinner div:nth-child(3){ transform: rotate(60deg); animation-delay: -0.2s; }
+    .spinner div:nth-child(4){ transform: rotate(90deg); animation-delay: -0.3s; }
+    .spinner div:nth-child(5){ transform: rotate(120deg); animation-delay: -0.4s; }
+    .spinner div:nth-child(6){ transform: rotate(150deg); animation-delay: -0.5s; }
+    .spinner div:nth-child(7){ transform: rotate(180deg); animation-delay: -0.6s; }
+    .spinner div:nth-child(8){ transform: rotate(210deg); animation-delay: -0.7s; }
+    .spinner div:nth-child(9){ transform: rotate(240deg); animation-delay: -0.8s; }
+    .spinner div:nth-child(10){ transform: rotate(270deg); animation-delay: -0.9s; }
+    .spinner div:nth-child(11){ transform: rotate(300deg); animation-delay: -1s; }
+    .spinner div:nth-child(12){ transform: rotate(330deg); animation-delay: -1.1s; }
+
+    @keyframes spin{
+      0% { opacity:1; } 100% { opacity:0.1; }
+    }
+
+    /* 提示玻璃視窗 */
     .glass-container{
-      backdrop-filter: blur(15px);
-      background: rgba(255,255,255,0.1);
-      border-radius: 25px;
-      border: 1px solid rgba(255,255,255,0.2);
-      padding: 2em;
-      display:flex;
+      display:none;
       flex-direction:column;
       align-items:center;
       text-align:center;
-      color:white;
+      padding:2em;
       max-width:350px;
       width:90%;
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(15px);
+      border-radius:25px;
+      border:1px solid rgba(255,255,255,0.2);
       box-shadow: 0 0 40px rgba(0,0,0,0.3);
-    }
-
-    .spinner{
-      width:50px;height:50px;
-      border:6px solid rgba(255,255,255,0.3);
-      border-top:6px solid #b39ddb;
-      border-radius:50%;
-      animation:spin 1s linear infinite;
-      margin-bottom:1em;
-    }
-    @keyframes spin{to{transform:rotate(360deg)}}
-
-    #message{
-      font-size:1.2em;
-      margin-bottom:1.5em;
+      z-index:10;
+      position:relative;
     }
 
     .action-button{
@@ -71,7 +97,6 @@
       font-size:1em;
       cursor:pointer;
       margin:0.5em 0;
-      backdrop-filter: blur(5px);
       transition: all 0.3s ease;
       width:80%;
     }
@@ -81,6 +106,7 @@
       transform: scale(1.05);
     }
 
+    #glass-message{ font-size:1.2em; margin-bottom:1em; }
     #update-notice{
       display:none;
       position:fixed; bottom:1em; left:50%;
@@ -91,26 +117,33 @@
       border-radius:15px;
       cursor:pointer;
       z-index:9999;
-      backdrop-filter: blur(5px);
-      box-shadow:0 0 20px rgba(0,0,0,0.3);
       transition: transform 0.3s ease;
     }
-    #update-notice:hover{
-      transform: translateX(-50%) scale(1.05);
-    }
-
+    #update-notice:hover{ transform: translateX(-50%) scale(1.05); }
   </style>
 </head>
 <body>
-  <div class="glass-container">
-    <div class="spinner"></div>
+  <div class="loader-container" id="loader">
+    <div class="spinner">
+      <div></div><div></div><div></div><div></div><div></div><div></div>
+      <div></div><div></div><div></div><div></div><div></div><div></div>
+    </div>
     <div id="message">🔧 正在載入頁面…</div>
+  </div>
+
+  <div class="glass-container" id="glass">
+    <div id="glass-message">👋 歡迎安裝台中道場資訊網<br>將在<strong>20 秒</strong>後自動跳轉網站</div>
+    <button class="action-button" id="go-site-btn">立即前往網站</button>
+    <button class="action-button" id="ios-install-btn">安裝到主畫面</button>
     <div id="update-notice">🔄 新版本可用，點擊更新！</div>
   </div>
 
   <script>
     const SITE_URL = "https://sites.google.com/view/fycd-tc/";
-    const container = document.querySelector('.glass-container');
+    const loader = document.getElementById('loader');
+    const glass = document.getElementById('glass');
+    const goBtn = document.getElementById('go-site-btn');
+    const iosBtn = document.getElementById('ios-install-btn');
 
     function detectClient(){
       const ua = navigator.userAgent;
@@ -120,101 +153,59 @@
       const isEdg = /Edg\/\d+/i.test(ua);
       const isFx  = /Firefox\/\d+/i.test(ua)&&!ua.includes('Seamonkey');
       const isSaf = /Safari\/\d+/i.test(ua)&&!isChr&&!isEdg;
-      return {
-        isIOS,isAnd,isChr,isEdg,isFx,isSaf,
-        inPWA: matchMedia('(display-mode: standalone)').matches||
-               matchMedia('(display-mode: fullscreen)').matches||
-               navigator.standalone===true
-      };
+      return {isIOS,isAnd,isChr,isEdg,isFx,isSaf,
+              inPWA: matchMedia('(display-mode: standalone)').matches||
+                     matchMedia('(display-mode: fullscreen)').matches||
+                     navigator.standalone===true};
     }
 
-    function requestFull(){
-      const el=document.documentElement;
-      const req= el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen||el.msRequestFullscreen;
-      if(req) req.call(el);
-    }
+    const c = detectClient();
+    document.addEventListener('click',()=>{document.documentElement.requestFullscreen?.();},{once:true});
 
     window.addEventListener('load',()=>{
-      const c = detectClient();
-      document.addEventListener('click',requestFull,{once:true});
+      // 模擬載入延遲
+      setTimeout(()=>{
+        loader.style.display='none';
+        glass.style.display='flex';
+        if(c.isIOS && c.isSaf) iosBtn.style.display='block';
+        else iosBtn.style.display='none';
+      },2000);
 
-      if(c.inPWA){
-        window.location.href=SITE_URL;
-        return;
-      }
+      // 按鈕事件
+      goBtn.onclick = ()=> window.open(SITE_URL,'_blank','fullscreen=yes,scrollbars=yes,resizable=yes') || window.location.href=SITE_URL;
+      iosBtn.onclick = ()=> alert('請點選 Safari 底部「分享」→「加入主畫面」即可安裝');
 
-      let hint='📲 建議安裝至桌面，享受全螢幕體驗。';
-      if(c.isIOS && c.isSaf) hint='📲 在 Safari 底部「分享」→『加入主畫面』安裝。';
-      else if(c.isAnd&&(c.isChr||c.isEdg)) hint='📲 點網址列右側「安裝圖示」或選單「加入主畫面」。';
-      else if(c.isFx) hint='🦊 Firefox 可用「⋮ 選單→安裝」或手動加入書籤。';
-
-      document.getElementById('message').innerHTML=`👋 歡迎安裝台中道場資訊網<br><br>${hint}<br>
-                     將在<strong>20 秒</strong>後自動跳轉網站，<br>
-                     或點擊下方按鈕立即前往。`;
-
-      document.querySelector('.spinner').style.display='none';
-
-      // 已有按鈕就不重複創建
-      if(!document.getElementById('go-site-btn')){
-        const btn = document.createElement('button');
-        btn.id = 'go-site-btn';
-        btn.className='action-button';
-        btn.textContent='立即前往網站';
-        btn.onclick = () => {
-          const newWin = window.open(SITE_URL,'_blank','fullscreen=yes,scrollbars=yes,resizable=yes');
-          if(!newWin) window.location.href = SITE_URL;
-        };
-        container.appendChild(btn);
-      }
-
-      // iOS 安裝按鈕
-      if(c.isIOS && c.isSaf && !document.getElementById('ios-install-btn')){
-        const iosBtn = document.createElement('button');
-        iosBtn.id = 'ios-install-btn';
-        iosBtn.className='action-button';
-        iosBtn.textContent='安裝到主畫面';
-        iosBtn.onclick = ()=> alert('請點選 Safari 底部「分享」→「加入主畫面」即可安裝');
-        container.appendChild(iosBtn);
-      }
-
-      // Chrome / Edge 安裝
+      // Chrome / Edge PWA 安裝
       let deferredPrompt;
       window.addEventListener('beforeinstallprompt', e=>{
         e.preventDefault();
         deferredPrompt = e;
-        if(!document.getElementById('install-btn')){
-          const installBtn = document.createElement('button');
-          installBtn.id='install-btn';
-          installBtn.className='action-button';
-          installBtn.textContent='安裝台中道場資訊網';
-          installBtn.onclick = async ()=>{
-            deferredPrompt.prompt();
-            const choice = await deferredPrompt.userChoice;
-            deferredPrompt = null;
-          };
-          container.appendChild(installBtn);
-        }
+        const installBtn = document.createElement('button');
+        installBtn.className='action-button';
+        installBtn.textContent='安裝台中道場資訊網';
+        installBtn.onclick = async ()=>{
+          deferredPrompt.prompt();
+          const choice = await deferredPrompt.userChoice;
+          deferredPrompt = null;
+        };
+        glass.appendChild(installBtn);
       });
 
-      setTimeout(()=>{ if(!document.hidden) window.location.href=SITE_URL; },20000);
-    });
-
-    // 註冊 Service Worker 並檢查新版本
-    if('serviceWorker' in navigator){
-      navigator.serviceWorker.register('service-worker.js').then(reg=>{
-        console.log('SW 註冊成功', reg);
-        reg.addEventListener('updatefound', ()=>{
-          const newSW = reg.installing;
-          newSW.addEventListener('statechange', ()=>{
-            if(newSW.state==='installed' && navigator.serviceWorker.controller){
-              const notice = document.getElementById('update-notice');
-              notice.style.display='block';
-              notice.onclick = ()=> window.location.reload();
-            }
+      // SW 新版本
+      if('serviceWorker' in navigator){
+        navigator.serviceWorker.register('service-worker.js').then(reg=>{
+          reg.addEventListener('updatefound', ()=>{
+            const newSW = reg.installing;
+            newSW.addEventListener('statechange', ()=>{
+              if(newSW.state==='installed' && navigator.serviceWorker.controller){
+                document.getElementById('update-notice').style.display='block';
+                document.getElementById('update-notice').onclick = ()=> location.reload();
+              }
+            });
           });
         });
-      }).catch(err=>console.error('SW 註冊失敗', err));
-    }
+      }
+    });
   </script>
 </body>
 </html>
