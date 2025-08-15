@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>發一崇德台中道場資訊網</title>
 
+  <!-- Viewport 與全螢幕 -->
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,minimal-ui">
   <meta name="theme-color" content="#7e57c2">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,6 +30,7 @@
       100%{background-position:0% 50%}
     }
 
+    /* 玻璃面板 */
     .glass-container{
       backdrop-filter: blur(15px);
       background: rgba(255,255,255,0.1);
@@ -56,7 +58,10 @@
     }
     @keyframes spin{to{transform:rotate(360deg)}}
 
-    #message{font-size:1.2em;margin-bottom:1.5em;}
+    #message{
+      font-size:1.2em;
+      margin-bottom:1.5em;
+    }
 
     .action-button{
       background: rgba(255,255,255,0.2);
@@ -110,8 +115,7 @@
   </div>
 
   <script>
-    const SITE_VIEW_URL = "https://sites.google.com/view/fycd-tc/";   
-    const SITE_EMBED_URL = "https://sites.google.com/embed/fycd-tc/"; 
+    const SITE_URL = "https://sites.google.com/embed/fycd-tc/";
     const container = document.querySelector('.glass-container');
 
     function detectClient(){
@@ -141,19 +145,13 @@
       document.addEventListener('click',requestFull,{once:true});
 
       if(c.inPWA){
-        // PWA 模式直接嵌入 iframe，加入 sandbox + try-catch 避免第三方 JS 錯誤干擾
+        // PWA 模式直接嵌入 iframe
         container.style.opacity = '0';
         setTimeout(()=>{
           container.remove();
-          try {
-            const iframe = document.createElement('iframe');
-            iframe.src = SITE_EMBED_URL;
-            iframe.sandbox = "allow-scripts allow-same-origin allow-forms allow-popups";
-            document.body.appendChild(iframe);
-          } catch(err){
-            console.warn("Iframe 加載失敗:", err);
-            window.location.href = SITE_VIEW_URL;
-          }
+          const iframe = document.createElement('iframe');
+          iframe.src = SITE_URL;
+          document.body.appendChild(iframe);
         },500);
         return;
       }
@@ -170,15 +168,17 @@
 
       document.querySelector('.spinner').style.display='none';
 
+      // 前往網站按鈕
       if(!document.getElementById('go-site-btn')){
         const btn = document.createElement('button');
         btn.id = 'go-site-btn';
         btn.className='action-button';
         btn.textContent='立即前往網站';
-        btn.onclick = () => window.open(SITE_VIEW_URL,'_blank','fullscreen=yes,scrollbars=yes,resizable=yes');
+        btn.onclick = () => window.open(SITE_URL,'_blank','fullscreen=yes,scrollbars=yes,resizable=yes');
         container.appendChild(btn);
       }
 
+      // iOS 安裝按鈕
       if(c.isIOS && c.isSaf && !document.getElementById('ios-install-btn')){
         const iosBtn = document.createElement('button');
         iosBtn.id = 'ios-install-btn';
@@ -188,27 +188,30 @@
         container.appendChild(iosBtn);
       }
 
+      // Chrome / Edge 安裝
       let deferredPrompt;
       window.addEventListener('beforeinstallprompt', e=>{
         e.preventDefault();
         deferredPrompt = e;
         if(!document.getElementById('install-btn')){
           const installBtn = document.createElement('button');
-          installBtn.id = 'install-btn';
+          installBtn.id='install-btn';
           installBtn.className='action-button';
           installBtn.textContent='安裝台中道場資訊網';
           installBtn.onclick = async ()=>{
             deferredPrompt.prompt();
-            await deferredPrompt.userChoice;
+            const choice = await deferredPrompt.userChoice;
             deferredPrompt = null;
           };
           container.appendChild(installBtn);
         }
       });
 
-      setTimeout(()=>{ if(!document.hidden) window.location.href=SITE_VIEW_URL; },20000);
+      // 20 秒自動跳轉
+      setTimeout(()=>{ if(!document.hidden) window.location.href=SITE_URL; },20000);
     });
 
+    // 註冊 Service Worker 並檢查新版本
     if('serviceWorker' in navigator){
       navigator.serviceWorker.register('service-worker.js').then(reg=>{
         console.log('SW 註冊成功', reg);
