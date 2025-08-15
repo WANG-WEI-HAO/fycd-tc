@@ -110,6 +110,23 @@
     setTimeout(()=>{ if(!document.hidden) window.location.href=SITE_URL; },20000);
   });
 
+  /*－－ 安裝PWA按鈕 －－*/
+  let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const installBtn = document.createElement('button');
+  installBtn.textContent = '安裝濟公智慧 App';
+  installBtn.className = 'action-button';
+  installBtn.onclick = async () => {
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    console.log(`使用者選擇: ${choice.outcome}`);
+    deferredPrompt = null;
+  };
+  document.body.appendChild(installBtn);
+});
+    
   /*－－ 註冊 SW －－*/
   if('serviceWorker'in navigator){
     navigator.serviceWorker.register('service-worker.js');
