@@ -102,16 +102,31 @@
     document.querySelector('.spinner').style.display='none';
 
     const btn=document.createElement('button');
-    btn.className='action-button';
-    btn.textContent='立即前往網站';
-    btn.onclick=()=>window.location.href=SITE_URL;
-    document.body.appendChild(btn);
+btn.className='action-button';
+btn.textContent='立即前往網站';
+btn.onclick = () => {
+  const newWin = window.open(
+    SITE_URL,
+    '_blank',
+    'fullscreen=yes,scrollbars=yes,resizable=yes'
+  );
+  if (!newWin) window.location.href = SITE_URL; // 阻擋 fallback
+};
+document.body.appendChild(btn);
 
-    setTimeout(()=>{ if(!document.hidden) window.location.href=SITE_URL; },20000);
-  });
+/*－－ iOS Safari 安裝提示按鈕 －－*/
+if(c.isIOS && c.isSaf){
+  const iosBtn = document.createElement('button');
+  iosBtn.className='action-button';
+  iosBtn.textContent='安裝到主畫面';
+  iosBtn.onclick = () => {
+    alert('請點選 Safari 底部「分享」→「加入主畫面」即可安裝');
+  };
+  document.body.appendChild(iosBtn);
+}
 
-  /*－－ 安裝PWA按鈕 －－*/
-  let deferredPrompt;
+/*－－ Chrome / Edge / Firefox 安裝按鈕 －－*/
+let deferredPrompt;
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredPrompt = e;
@@ -126,7 +141,7 @@ window.addEventListener('beforeinstallprompt', e => {
   };
   document.body.appendChild(installBtn);
 });
-    
+
   /*－－ 註冊 SW －－*/
   if('serviceWorker'in navigator){
     navigator.serviceWorker.register('service-worker.js');
