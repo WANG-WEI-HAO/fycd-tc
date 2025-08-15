@@ -96,7 +96,7 @@
                               hint='📲 點網址列右側「安裝圖示」或選單「加入主畫面」。';
     else if(c.isFx)           hint='🦊 Firefox 可用「⋮ 選單→安裝」或手動加入書籤。';
 
-    msg.innerHTML=`👋 歡迎使用<br><br>${hint}<br>
+    msg.innerHTML=`👋 歡迎安裝台中道場資訊網<br><br>${hint}<br>
                    將在<strong>20 秒</strong>後自動跳轉網站，<br>
                    或點擊下方按鈕立即前往。`;
     document.querySelector('.spinner').style.display='none';
@@ -116,7 +116,7 @@ window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredPrompt = e;
   const installBtn = document.createElement('button');
-  installBtn.textContent = '台中道場資訊網';
+  installBtn.textContent = '安裝台中道場資訊網';
   installBtn.className = 'action-button';
   installBtn.onclick = async () => {
     deferredPrompt.prompt();
