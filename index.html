@@ -1,211 +1,234 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <title>發一崇德台中道場資訊網</title>
+<meta charset="UTF-8" />
+<title>發一崇德台中道場資訊網</title>
 
-  <!-- Viewport 與全螢幕 -->
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,minimal-ui">
-  <meta name="theme-color" content="#7e57c2">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- Viewport and fullscreen settings for PWA -->
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,minimal-ui">
+<meta name="theme-color" content="#7e57c2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="icons/icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
 
-  <style>
-    html, body{
-      margin:0; padding:0;
-      width:100%; height:100%;
-      display:flex; justify-content:center; align-items:center;
-      font-family:'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg,#d1c4e9,#b39ddb,#9575cd,#7e57c2);
-      background-size: 400% 400%;
-      animation: gradientBG 15s ease infinite;
-      overflow:hidden;
-      color:white;
-    }
-    @keyframes gradientBG{
-      0%{background-position:0% 50%}
-      50%{background-position:100% 50%}
-      100%{background-position:0% 50%}
-    }
+<style>
+/* Base Styles */
+html, body{
+  margin:0; padding:0;
+  width:100%; height:100%;
+  display:flex; justify-content:center; align-items:center;
+  font-family:'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg,#d1c4e9,#b39ddb,#9575cd,#7e57c2);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+  overflow:hidden;
+}
 
-    /* 載入動畫容器 */
-    .loader-container{
-      position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);
-      display:flex; flex-direction:column; justify-content:center; align-items:center;
-    }
+/* Glass Container for main content */
+.glass-container{
+  backdrop-filter: blur(15px);
+  background: rgba(255,255,255,0.1);
+  border-radius: 25px;
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 2em;
+  display:flex; flex-direction:column; align-items:center;
+  text-align:center;
+  color:white;
+  max-width:350px; width:90%;
+  box-shadow: 0 0 40px rgba(0,0,0,0.3);
+}
 
-    /* 線條旋轉動畫 */
-    .spinner {
-      width: 60px;
-      height: 60px;
-      position: relative;
-      margin-bottom: 20px;
-    }
-    .spinner div{
-      transform-origin: 30px 30px;
-      animation: spin 1.2s linear infinite;
-      position: absolute;
-      top: 0; left: 0;
-      width: 6px; height: 18px;
-      background: rgba(255,255,255,0.8);
-      border-radius: 3px;
-    }
-    .spinner div:nth-child(1){ transform: rotate(0deg); animation-delay: 0s; }
-    .spinner div:nth-child(2){ transform: rotate(30deg); animation-delay: -0.1s; }
-    .spinner div:nth-child(3){ transform: rotate(60deg); animation-delay: -0.2s; }
-    .spinner div:nth-child(4){ transform: rotate(90deg); animation-delay: -0.3s; }
-    .spinner div:nth-child(5){ transform: rotate(120deg); animation-delay: -0.4s; }
-    .spinner div:nth-child(6){ transform: rotate(150deg); animation-delay: -0.5s; }
-    .spinner div:nth-child(7){ transform: rotate(180deg); animation-delay: -0.6s; }
-    .spinner div:nth-child(8){ transform: rotate(210deg); animation-delay: -0.7s; }
-    .spinner div:nth-child(9){ transform: rotate(240deg); animation-delay: -0.8s; }
-    .spinner div:nth-child(10){ transform: rotate(270deg); animation-delay: -0.9s; }
-    .spinner div:nth-child(11){ transform: rotate(300deg); animation-delay: -1s; }
-    .spinner div:nth-child(12){ transform: rotate(330deg); animation-delay: -1.1s; }
+/* Spinner Styles */
+.spinner{
+  width:50px; height:50px;
+  border:6px solid rgba(255,255,255,0.3);
+  border-top:6px solid #b39ddb;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  margin-bottom:1em;
+}
 
-    @keyframes spin{
-      0% { opacity:1; } 100% { opacity:0.1; }
-    }
+/* Custom Message Box Styles (replaces alert) */
+.message-box {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(15px);
+    border-radius: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 2em;
+    z-index: 1000;
+    text-align: center;
+    width: 80%;
+    max-width: 300px;
+    color: white;
+}
 
-    /* 提示玻璃視窗 */
-    .glass-container{
-      display:none;
-      flex-direction:column;
-      align-items:center;
-      text-align:center;
-      padding:2em;
-      max-width:350px;
-      width:90%;
-      background: rgba(255,255,255,0.1);
-      backdrop-filter: blur(15px);
-      border-radius:25px;
-      border:1px solid rgba(255,255,255,0.2);
-      box-shadow: 0 0 40px rgba(0,0,0,0.3);
-      z-index:10;
-      position:relative;
-    }
+.message-box-content {
+    margin-bottom: 1em;
+}
 
-    .action-button{
-      background: rgba(255,255,255,0.2);
-      color:white;
-      border:1px solid rgba(255,255,255,0.4);
-      padding:12px 25px;
-      border-radius:15px;
-      font-size:1em;
-      cursor:pointer;
-      margin:0.5em 0;
-      transition: all 0.3s ease;
-      width:80%;
-    }
-    .action-button:hover{
-      background: rgba(179,157,219,0.3);
-      border-color: rgba(255,255,255,0.6);
-      transform: scale(1.05);
-    }
+/* Other Animations and styles */
+@keyframes gradientBG{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-    #glass-message{ font-size:1.2em; margin-bottom:1em; }
-    #update-notice{
-      display:none;
-      position:fixed; bottom:1em; left:50%;
-      transform:translateX(-50%);
-      background: rgba(124,77,255,0.7);
-      color:white;
-      padding:12px 25px;
-      border-radius:15px;
-      cursor:pointer;
-      z-index:9999;
-      transition: transform 0.3s ease;
-    }
-    #update-notice:hover{ transform: translateX(-50%) scale(1.05); }
-  </style>
+#message{font-size:1.2em; margin-bottom:1.5em;}
+
+.action-button{
+  background: rgba(255,255,255,0.2);
+  color:white;
+  border:1px solid rgba(255,255,255,0.4);
+  padding:12px 25px;
+  border-radius:15px;
+  font-size:1em;
+  cursor:pointer;
+  margin:0.5em 0;
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+  width:80%;
+}
+.action-button:hover{
+  background: rgba(179,157,219,0.3);
+  border-color: rgba(255,255,255,0.6);
+  transform: scale(1.05);
+}
+</style>
 </head>
 <body>
-  <div class="loader-container" id="loader">
-    <div class="spinner">
-      <div></div><div></div><div></div><div></div><div></div><div></div>
-      <div></div><div></div><div></div><div></div><div></div><div></div>
-    </div>
-    <div id="message">🔧 正在載入頁面…</div>
-  </div>
+<div class="glass-container">
+  <div id="message">載入中...</div>
+  <div class="spinner"></div>
+</div>
 
-  <div class="glass-container" id="glass">
-    <div id="glass-message">👋 歡迎安裝台中道場資訊網<br>將在<strong>20 秒</strong>後自動跳轉網站</div>
-    <button class="action-button" id="go-site-btn">立即前往網站</button>
-    <button class="action-button" id="ios-install-btn">安裝到主畫面</button>
-    <div id="update-notice">🔄 新版本可用，點擊更新！</div>
-  </div>
+<!-- Custom message box for better user experience -->
+<div class="message-box" id="message-box">
+    <div class="message-box-content" id="message-content"></div>
+    <button class="action-button" onclick="closeMessageBox()">確認</button>
+</div>
 
-  <script>
-    const SITE_URL = "https://sites.google.com/view/fycd-tc/";
-    const loader = document.getElementById('loader');
-    const glass = document.getElementById('glass');
-    const goBtn = document.getElementById('go-site-btn');
-    const iosBtn = document.getElementById('ios-install-btn');
+<script>
+const SITE_URL = 'https://taichung-faith.org';
+const container = document.querySelector('.glass-container');
+const messageBox = document.getElementById('message-box');
+const messageContent = document.getElementById('message-content');
 
-    function detectClient(){
-      const ua = navigator.userAgent;
-      const isIOS = /iPhone|iPad|iPod/i.test(ua)|| (ua.includes('Mac') && 'ontouchend' in document);
-      const isAnd = /Android/i.test(ua);
-      const isChr = /Chrome\/\d+/i.test(ua)&&!ua.includes('Edg/');
-      const isEdg = /Edg\/\d+/i.test(ua);
-      const isFx  = /Firefox\/\d+/i.test(ua)&&!ua.includes('Seamonkey');
-      const isSaf = /Safari\/\d+/i.test(ua)&&!isChr&&!isEdg;
-      return {isIOS,isAnd,isChr,isEdg,isFx,isSaf,
-              inPWA: matchMedia('(display-mode: standalone)').matches||
-                     matchMedia('(display-mode: fullscreen)').matches||
-                     navigator.standalone===true};
-    }
+// Function to show a custom message box
+function showMessageBox(message) {
+    messageContent.innerHTML = message;
+    messageBox.style.display = 'block';
+}
 
-    const c = detectClient();
-    document.addEventListener('click',()=>{document.documentElement.requestFullscreen?.();},{once:true});
+// Function to close the custom message box
+function closeMessageBox() {
+    messageBox.style.display = 'none';
+}
 
-    window.addEventListener('load',()=>{
-      // 模擬載入延遲
-      setTimeout(()=>{
-        loader.style.display='none';
-        glass.style.display='flex';
-        if(c.isIOS && c.isSaf) iosBtn.style.display='block';
-        else iosBtn.style.display='none';
-      },2000);
+function detectClient(){
+  const ua = navigator.userAgent;
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  const isAnd = /Android/i.test(ua);
+  const isChr = /Chrome\/\d+/i.test(ua)&&!ua.includes('Edg/');
+  const isEdg = /Edg\/\d+/i.test(ua);
+  const isFx = /Firefox\/\d+/i.test(ua)&&!ua.includes('Seamonkey');
+  const isSaf = /Safari\/\d+/i.test(ua)&&!isChr&&!isEdg;
+  const inPWA = window.matchMedia('(display-mode: standalone)').matches;
+  return {isIOS,isAnd,isChr,isEdg,isFx,isSaf,inPWA};
+}
 
-      // 按鈕事件
-      goBtn.onclick = ()=> window.open(SITE_URL,'_blank','fullscreen=yes,scrollbars=yes,resizable=yes') || window.location.href=SITE_URL;
-      iosBtn.onclick = ()=> alert('請點選 Safari 底部「分享」→「加入主畫面」即可安裝');
+function safeOpen(url){
+  try{
+    const newWin = window.open(url,'_blank');
+    if(!newWin) window.location.href = url;
+  }catch(e){window.location.href = url;}
+}
 
-      // Chrome / Edge PWA 安裝
-      let deferredPrompt;
-      window.addEventListener('beforeinstallprompt', e=>{
-        e.preventDefault();
-        deferredPrompt = e;
-        const installBtn = document.createElement('button');
-        installBtn.className='action-button';
-        installBtn.textContent='安裝台中道場資訊網';
-        installBtn.onclick = async ()=>{
-          deferredPrompt.prompt();
-          const choice = await deferredPrompt.userChoice;
-          deferredPrompt = null;
-        };
-        glass.appendChild(installBtn);
-      });
+window.addEventListener('load',()=>{
+  const c = detectClient();
+  const msg = document.getElementById('message');
+  const spinner = document.querySelector('.spinner');
 
-      // SW 新版本
-      if('serviceWorker' in navigator){
-        navigator.serviceWorker.register('service-worker.js').then(reg=>{
-          reg.addEventListener('updatefound', ()=>{
-            const newSW = reg.installing;
-            newSW.addEventListener('statechange', ()=>{
-              if(newSW.state==='installed' && navigator.serviceWorker.controller){
-                document.getElementById('update-notice').style.display='block';
-                document.getElementById('update-notice').onclick = ()=> location.reload();
-              }
-            });
+  let hint='📲 建議安裝至桌面，享受全螢幕體驗。';
+  if(c.isIOS && c.isSaf) {
+      hint='📲 在 Safari 底部「分享」→『加入主畫面』安裝。';
+  } else if(c.isAnd && (c.isChr||c.isEdg)) {
+      hint='📲 點網址列右側「安裝圖示」或選單「加入主畫面」。';
+  } else if(c.isFx) {
+      hint='🦊 Firefox 可用「⋮ 選單→安裝」或手動加入書籤。';
+  }
+
+  msg.innerHTML=`👋 歡迎安裝台中道場資訊網<br><br>${hint}<br>將在<strong>20 秒</strong>後自動跳轉網站，<br>或點擊下方按鈕立即前往。`;
+  spinner.style.display='none';
+
+  const btn=document.createElement('button');
+  btn.className='action-button';
+  btn.textContent='立即前往網站';
+  btn.onclick = ()=> safeOpen(SITE_URL);
+  container.appendChild(btn);
+
+  if(c.isIOS && c.isSaf){
+    const iosBtn=document.createElement('button');
+    iosBtn.className='action-button';
+    iosBtn.textContent='安裝到主畫面';
+    // Use the custom message box instead of alert()
+    iosBtn.onclick = ()=> showMessageBox('請點選 Safari 底部「分享」→「加入主畫面」即可安裝');
+    container.appendChild(iosBtn);
+  }
+
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', e=>{
+    e.preventDefault();
+    deferredPrompt = e;
+    const installBtn=document.createElement('button');
+    installBtn.textContent='安裝台中道場資訊網';
+    installBtn.className='action-button';
+    installBtn.onclick = async()=>{
+      try { await deferredPrompt.prompt(); } catch(err){ console.warn('Prompt 被禁止', err); }
+      const choice = await deferredPrompt.userChoice;
+      console.log(`使用者選擇: ${choice.outcome}`);
+      deferredPrompt = null;
+    };
+    container.appendChild(installBtn);
+  });
+
+  setTimeout(()=>{ if(!document.hidden) window.location.href=SITE_URL; },20000);
+
+  // --- Service Worker Registration ---
+  // Note: This code enables offline functionality and updates.
+  // It may fail in certain environments (e.g., local file:// or sandbox)
+  // due to browser security restrictions. For production on a web server,
+  // this is the correct way to register a Service Worker.
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js').then(reg => {
+      console.log('Service Worker 註冊成功:', reg.scope);
+
+      // Listen for updates and show a notification
+      reg.addEventListener('updatefound', () => {
+        const newSW = reg.installing;
+        if (newSW) {
+          newSW.addEventListener('statechange', () => {
+            if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+              const notice = document.createElement('div');
+              notice.id = 'update-notice';
+              notice.textContent = '🔄 新版本可用，點擊更新！';
+              notice.onclick = () => window.location.reload();
+              document.body.appendChild(notice);
+            }
           });
-        });
-      }
+        }
+      });
+    }).catch(err => {
+      console.error('Service Worker 註冊失敗:', err);
     });
-  </script>
+  }
+</script>
 </body>
 </html>
