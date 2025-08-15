@@ -3,8 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <title>發一崇德台中道場資訊網</title>
-
-  <!-- Viewport 與全螢幕 -->
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,minimal-ui">
   <meta name="theme-color" content="#7e57c2">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,7 +12,7 @@
   <link rel="icon" href="icons/icon-192.png">
 
   <style>
-    html, body{
+    html, body {
       margin:0; padding:0;
       width:100%; height:100%;
       display:flex; justify-content:center; align-items:center;
@@ -29,14 +27,12 @@
       50%{background-position:100% 50%}
       100%{background-position:0% 50%}
     }
-
-    /* 玻璃面板 */
-    .glass-container{
+    .glass-container {
       backdrop-filter: blur(15px);
       background: rgba(255,255,255,0.1);
-      border-radius: 25px;
-      border: 1px solid rgba(255,255,255,0.2);
-      padding: 2em;
+      border-radius:25px;
+      border:1px solid rgba(255,255,255,0.2);
+      padding:2em;
       display:flex;
       flex-direction:column;
       align-items:center;
@@ -44,12 +40,11 @@
       color:white;
       max-width:350px;
       width:90%;
-      box-shadow: 0 0 40px rgba(0,0,0,0.3);
+      box-shadow:0 0 40px rgba(0,0,0,0.3);
       transition: opacity 0.5s ease;
     }
-
     .spinner{
-      width:50px;height:50px;
+      width:50px; height:50px;
       border:6px solid rgba(255,255,255,0.3);
       border-top:6px solid #b39ddb;
       border-radius:50%;
@@ -57,13 +52,8 @@
       margin-bottom:1em;
     }
     @keyframes spin{to{transform:rotate(360deg)}}
-
-    #message{
-      font-size:1.2em;
-      margin-bottom:1.5em;
-    }
-
-    .action-button{
+    #install-tip{ font-size:1.1em; margin-top:1em; line-height:1.5; }
+    .action-button {
       background: rgba(255,255,255,0.2);
       color:white;
       border:1px solid rgba(255,255,255,0.4);
@@ -71,7 +61,7 @@
       border-radius:15px;
       font-size:1em;
       cursor:pointer;
-      margin:0.5em 0;
+      margin-top:1em;
       backdrop-filter: blur(5px);
       transition: all 0.3s ease;
       width:80%;
@@ -79,154 +69,82 @@
     .action-button:hover{
       background: rgba(179,157,219,0.3);
       border-color: rgba(255,255,255,0.6);
-      transform: scale(1.05);
-    }
-
-    #update-notice{
-      display:none;
-      position:fixed; bottom:1em; left:50%;
-      transform:translateX(-50%);
-      background: rgba(124,77,255,0.7);
-      color:white;
-      padding:12px 25px;
-      border-radius:15px;
-      cursor:pointer;
-      z-index:9999;
-      backdrop-filter: blur(5px);
-      box-shadow:0 0 20px rgba(0,0,0,0.3);
-      transition: transform 0.3s ease;
-    }
-    #update-notice:hover{
-      transform: translateX(-50%) scale(1.05);
-    }
-
-    iframe{
-      border:none;
-      width:100vw;
-      height:100vh;
     }
   </style>
 </head>
 <body>
   <div class="glass-container">
     <div class="spinner"></div>
-    <div id="message">🔧 正在載入頁面…</div>
-    <div id="update-notice">🔄 新版本可用，點擊更新！</div>
+    <div id="message">正在檢查裝置與瀏覽器...</div>
+    <div id="install-tip"></div>
+    <button id="open-site" class="action-button" style="display:none;">進入網站</button>
+    <button id="install-btn" class="action-button" style="display:none;">安裝到主畫面</button>
   </div>
 
-  <script>
-    const SITE_URL = "https://sites.google.com/embed/fycd-tc/";
-    const container = document.querySelector('.glass-container');
+<script>
+const SITE_URL = "https://sites.google.com/view/fycd-tc/";
+let deferredPrompt;
 
-    function detectClient(){
-      const ua = navigator.userAgent;
-      const isIOS = /iPhone|iPad|iPod/i.test(ua)|| (ua.includes('Mac') && 'ontouchend' in document);
-      const isAnd = /Android/i.test(ua);
-      const isChr = /Chrome\/\d+/i.test(ua)&&!ua.includes('Edg/');
-      const isEdg = /Edg\/\d+/i.test(ua);
-      const isFx  = /Firefox\/\d+/i.test(ua)&&!ua.includes('Seamonkey');
-      const isSaf = /Safari\/\d+/i.test(ua)&&!isChr&&!isEdg;
-      return {
-        isIOS,isAnd,isChr,isEdg,isFx,isSaf,
-        inPWA: matchMedia('(display-mode: standalone)').matches||
-               matchMedia('(display-mode: fullscreen)').matches||
-               navigator.standalone===true
-      };
-    }
+function getBrowserInfo() {
+  const ua = navigator.userAgent.toLowerCase();
+  if (/iphone|ipad|ipod/.test(ua) && /safari/.test(ua) && !/crios/.test(ua)) return "ios_safari";
+  if (/android/.test(ua) && /chrome/.test(ua)) return "android_chrome";
+  if (/android/.test(ua) && /edg/.test(ua)) return "android_edge";
+  if (/mac|win|linux/.test(ua) && /chrome/.test(ua)) return "desktop_chrome";
+  if (/mac|win|linux/.test(ua) && /edg/.test(ua)) return "desktop_edge";
+  if (/firefox/.test(ua)) return "firefox";
+  return "other";
+}
 
-    function requestFull(){
-      const el=document.documentElement;
-      const req= el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen||el.msRequestFullscreen;
-      if(req) req.call(el);
-    }
+function showInstallTip() {
+  const browser = getBrowserInfo();
+  const tip = document.getElementById("install-tip");
+  const message = document.getElementById("message");
+  const btnOpen = document.getElementById("open-site");
+  const btnInstall = document.getElementById("install-btn");
 
-    window.addEventListener('load',()=>{
-      const c = detectClient();
-      document.addEventListener('click',requestFull,{once:true});
+  let tipText = "";
+  switch(browser){
+    case "ios_safari":
+      tipText = "📱 iOS Safari：點擊下方「分享」按鈕 → 選擇「加到主畫面」。";
+      btnInstall.style.display="none";
+      break;
+    case "android_chrome":
+    case "android_edge":
+    case "desktop_chrome":
+    case "desktop_edge":
+      tipText = "📲 點擊下方「安裝到主畫面」按鈕安裝應用程式。";
+      btnInstall.style.display="block";
+      break;
+    case "firefox":
+      tipText = "🦊 Firefox：暫不支援 PWA，可加入書籤或固定分頁。";
+      btnInstall.style.display="none";
+      break;
+    default:
+      tipText = "ℹ️ 請使用支援 PWA 的瀏覽器安裝應用程式。";
+      btnInstall.style.display="none";
+  }
 
-      if(c.inPWA){
-        // PWA 模式直接嵌入 iframe
-        container.style.opacity = '0';
-        setTimeout(()=>{
-          container.remove();
-          const iframe = document.createElement('iframe');
-          iframe.src = SITE_URL;
-          document.body.appendChild(iframe);
-        },500);
-        return;
-      }
+  tip.innerHTML = tipText;
+  message.innerHTML = "您可以安裝此網站為應用程式：";
+  btnOpen.style.display="block";
+  btnOpen.onclick = () => { window.location.href = SITE_URL; };
+}
 
-      // 非 PWA 顯示安裝引導
-      let hint='📲 建議安裝至桌面，享受全螢幕體驗。';
-      if(c.isIOS && c.isSaf) hint='📲 在 Safari 底部「分享」→『加入主畫面』安裝。';
-      else if(c.isAnd&&(c.isChr||c.isEdg)) hint='📲 點網址列右側「安裝圖示」或選單「加入主畫面」。';
-      else if(c.isFx) hint='🦊 Firefox 可用「⋮ 選單→安裝」或手動加入書籤。';
+// 監聽 beforeinstallprompt
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const btnInstall = document.getElementById("install-btn");
+  btnInstall.style.display = "block";
+  btnInstall.onclick = async () => {
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+  };
+});
 
-      document.getElementById('message').innerHTML=`👋 歡迎安裝台中道場資訊網<br><br>${hint}<br>
-                     將在<strong>20 秒</strong>後自動跳轉網站，<br>
-                     或點擊下方按鈕立即前往。`;
-
-      document.querySelector('.spinner').style.display='none';
-
-      // 前往網站按鈕
-      if(!document.getElementById('go-site-btn')){
-        const btn = document.createElement('button');
-        btn.id = 'go-site-btn';
-        btn.className='action-button';
-        btn.textContent='立即前往網站';
-        btn.onclick = () => window.open(SITE_URL,'_blank','fullscreen=yes,scrollbars=yes,resizable=yes');
-        container.appendChild(btn);
-      }
-
-      // iOS 安裝按鈕
-      if(c.isIOS && c.isSaf && !document.getElementById('ios-install-btn')){
-        const iosBtn = document.createElement('button');
-        iosBtn.id = 'ios-install-btn';
-        iosBtn.className='action-button';
-        iosBtn.textContent='安裝到主畫面';
-        iosBtn.onclick = ()=> alert('請點選 Safari 底部「分享」→「加入主畫面」即可安裝');
-        container.appendChild(iosBtn);
-      }
-
-      // Chrome / Edge 安裝
-      let deferredPrompt;
-      window.addEventListener('beforeinstallprompt', e=>{
-        e.preventDefault();
-        deferredPrompt = e;
-        if(!document.getElementById('install-btn')){
-          const installBtn = document.createElement('button');
-          installBtn.id='install-btn';
-          installBtn.className='action-button';
-          installBtn.textContent='安裝台中道場資訊網';
-          installBtn.onclick = async ()=>{
-            deferredPrompt.prompt();
-            const choice = await deferredPrompt.userChoice;
-            deferredPrompt = null;
-          };
-          container.appendChild(installBtn);
-        }
-      });
-
-      // 20 秒自動跳轉
-      setTimeout(()=>{ if(!document.hidden) window.location.href=SITE_URL; },20000);
-    });
-
-    // 註冊 Service Worker 並檢查新版本
-    if('serviceWorker' in navigator){
-      navigator.serviceWorker.register('service-worker.js').then(reg=>{
-        console.log('SW 註冊成功', reg);
-        reg.addEventListener('updatefound', ()=>{
-          const newSW = reg.installing;
-          newSW.addEventListener('statechange', ()=>{
-            if(newSW.state==='installed' && navigator.serviceWorker.controller){
-              const notice = document.getElementById('update-notice');
-              notice.style.display='block';
-              notice.onclick = ()=> window.location.reload();
-            }
-          });
-        });
-      }).catch(err=>console.error('SW 註冊失敗', err));
-    }
-  </script>
+document.addEventListener("DOMContentLoaded", showInstallTip);
+</script>
 </body>
 </html>
