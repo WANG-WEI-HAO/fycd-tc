@@ -116,7 +116,7 @@ window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredPrompt = e;
   const installBtn = document.createElement('button');
-  installBtn.textContent = '安裝濟公智慧 App';
+  installBtn.textContent = '台中道場資訊網';
   installBtn.className = 'action-button';
   installBtn.onclick = async () => {
     deferredPrompt.prompt();
