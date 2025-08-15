@@ -7,7 +7,6 @@
   <meta name="theme-color" content="#7e57c2">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
 
@@ -73,62 +72,60 @@
   </style>
 </head>
 <body>
-  <div class="glass-container">
-    <div class="spinner"></div>
-    <div id="message">正在檢查裝置與瀏覽器...</div>
-    <div id="install-tip"></div>
-    <button id="open-site" class="action-button" style="display:none;">進入網站</button>
-    <button id="install-btn" class="action-button" style="display:none;">安裝到主畫面</button>
-  </div>
+<div class="glass-container">
+  <div class="spinner"></div>
+  <div id="message">正在檢查裝置與瀏覽器...</div>
+  <div id="install-tip"></div>
+  <button id="open-site" class="action-button" style="display:none;">進入網站</button>
+  <button id="install-btn" class="action-button" style="display:none;">安裝到主畫面</button>
+</div>
 
 <script>
 const SITE_URL = "https://sites.google.com/view/fycd-tc/";
 let deferredPrompt;
 
-function getBrowserInfo() {
-  const ua = navigator.userAgent.toLowerCase();
-  if (/iphone|ipad|ipod/.test(ua) && /safari/.test(ua) && !/crios/.test(ua)) return "ios_safari";
-  if (/android/.test(ua) && /chrome/.test(ua)) return "android_chrome";
-  if (/android/.test(ua) && /edg/.test(ua)) return "android_edge";
-  if (/mac|win|linux/.test(ua) && /chrome/.test(ua)) return "desktop_chrome";
-  if (/mac|win|linux/.test(ua) && /edg/.test(ua)) return "desktop_edge";
-  if (/firefox/.test(ua)) return "firefox";
-  return "other";
+// 檢查是否為 PWA 模式
+function isPWA() {
+  return window.matchMedia('(display-mode: standalone)').matches ||
+         window.matchMedia('(display-mode: fullscreen)').matches ||
+         window.navigator.standalone === true;
 }
 
-function showInstallTip() {
-  const browser = getBrowserInfo();
-  const tip = document.getElementById("install-tip");
+// 自動跳轉到網站
+function goToSite() {
+  window.location.href = SITE_URL;
+}
+
+// 顯示安裝與跳轉提示
+function showInstallUI() {
+  const container = document.querySelector('.glass-container');
   const message = document.getElementById("message");
+  const tip = document.getElementById("install-tip");
   const btnOpen = document.getElementById("open-site");
   const btnInstall = document.getElementById("install-btn");
 
-  let tipText = "";
-  switch(browser){
-    case "ios_safari":
-      tipText = "📱 iOS Safari：點擊下方「分享」按鈕 → 選擇「加到主畫面」。";
-      btnInstall.style.display="none";
-      break;
-    case "android_chrome":
-    case "android_edge":
-    case "desktop_chrome":
-    case "desktop_edge":
-      tipText = "📲 點擊下方「安裝到主畫面」按鈕安裝應用程式。";
-      btnInstall.style.display="block";
-      break;
-    case "firefox":
-      tipText = "🦊 Firefox：暫不支援 PWA，可加入書籤或固定分頁。";
-      btnInstall.style.display="none";
-      break;
-    default:
-      tipText = "ℹ️ 請使用支援 PWA 的瀏覽器安裝應用程式。";
-      btnInstall.style.display="none";
+  // 偵測瀏覽器
+  const ua = navigator.userAgent.toLowerCase();
+  let browserTip = "";
+  if (/iphone|ipad|ipod/.test(ua) && /safari/.test(ua) && !/crios/.test(ua)) {
+    browserTip = "📱 iOS Safari：點擊下方「分享」→選擇「加到主畫面」";
+    btnInstall.style.display="none";
+  } else if (/android/.test(ua) && /chrome/.test(ua) || /edg/.test(ua)) {
+    browserTip = "📲 點擊「安裝到主畫面」按鈕安裝 PWA";
+    btnInstall.style.display="block";
+  } else if (/firefox/.test(ua)) {
+    browserTip = "🦊 Firefox 暫不支援 PWA，可加入書籤或固定分頁";
+    btnInstall.style.display="none";
+  } else {
+    browserTip = "ℹ️ 請使用支援 PWA 的瀏覽器安裝應用程式";
+    btnInstall.style.display="none";
   }
 
-  tip.innerHTML = tipText;
   message.innerHTML = "您可以安裝此網站為應用程式：";
-  btnOpen.style.display="block";
-  btnOpen.onclick = () => { window.location.href = SITE_URL; };
+  tip.innerHTML = browserTip;
+
+  btnOpen.style.display = "block";
+  btnOpen.onclick = goToSite;
 }
 
 // 監聽 beforeinstallprompt
@@ -144,7 +141,16 @@ window.addEventListener('beforeinstallprompt', (e) => {
   };
 });
 
-document.addEventListener("DOMContentLoaded", showInstallTip);
+// DOM 載入後執行
+document.addEventListener("DOMContentLoaded", ()=>{
+  if(isPWA()){
+    // PWA 已啟動 → 直接跳轉網站
+    goToSite();
+  } else {
+    // 非 PWA → 顯示安裝提示
+    showInstallUI();
+  }
+});
 </script>
 </body>
 </html>
