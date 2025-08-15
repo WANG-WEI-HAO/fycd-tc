@@ -92,24 +92,36 @@
 <script>
 const SITE_URL="https://sites.google.com/view/fycd-tc/";
 
-function detectPWA(){
-  return matchMedia('(display-mode: standalone)').matches||
-         matchMedia('(display-mode: fullscreen)').matches||
-         navigator.standalone===true;
+function detectClient(){
+  const ua = navigator.userAgent;
+  return {
+    isIOS: /iPhone|iPad|iPod/i.test(ua) || (ua.includes('Mac') && 'ontouchend' in document),
+    isAndroid: /Android/i.test(ua),
+    isChrome: /Chrome\/\d+/i.test(ua) && !ua.includes('Edg/'),
+    isEdge: /Edg\/\d+/i.test(ua),
+    isFirefox: /Firefox\/\d+/i.test(ua) && !ua.includes('Seamonkey'),
+    isSafari: /Safari\/\d+/i.test(ua) && !/Chrome|Edg/.test(ua),
+    inPWA: matchMedia('(display-mode: standalone)').matches ||
+           matchMedia('(display-mode: fullscreen)').matches ||
+           navigator.standalone===true
+  };
 }
 
 window.addEventListener('load',()=>{
-  if(detectPWA()){
-    // PWA：直接嵌入 iframe，全螢幕
+  const client = detectClient();
+
+  if(client.inPWA){
     document.getElementById('welcome').style.display='none';
-    const iframeContainer = document.getElementById('iframe-container');
-    iframeContainer.style.display='block';
+    document.getElementById('iframe-container').style.display='block';
   } else {
-    // 非 PWA：顯示歡迎頁，20秒後跳轉
     const message = document.getElementById('message');
-    message.innerHTML = `👋 歡迎安裝台中道場資訊網<br>
-                         將在<strong>20 秒</strong>後自動跳轉網站<br>
-                         或點擊下方按鈕立即前往`;
+    let hint = '📲 建議安裝至桌面，享受全螢幕體驗。';
+    if(client.isIOS && client.isSafari) hint='📲 在 Safari 底部「分享」→『加入主畫面』安裝。';
+    else if(client.isAndroid && (client.isChrome || client.isEdge)) hint='📲 點網址列右側「安裝圖示」或選單「加入主畫面」。';
+    else if(client.isFirefox) hint='🦊 Firefox 可用「⋮ 選單→安裝」或手動加入書籤。';
+
+    message.innerHTML = `👋 歡迎安裝台中道場資訊網<br>${hint}<br>將在<strong>20 秒</strong>後自動跳轉網站<br>或點擊下方按鈕立即前往`;
+
     const container = document.getElementById('welcome');
     const btn = document.createElement('button');
     btn.className='action-button';
