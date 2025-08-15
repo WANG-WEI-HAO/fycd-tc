@@ -45,6 +45,7 @@
       max-width:350px;
       width:90%;
       box-shadow: 0 0 40px rgba(0,0,0,0.3);
+      transition: opacity 0.5s ease;
     }
 
     .spinner{
@@ -99,6 +100,11 @@
       transform: translateX(-50%) scale(1.05);
     }
 
+    iframe{
+      border:none;
+      width:100vw;
+      height:100vh;
+    }
   </style>
 </head>
 <body>
@@ -109,7 +115,8 @@
   </div>
 
   <script>
-    const SITE_URL = "https://sites.google.com/view/fycd-tc/";
+    const SITE_VIEW_URL = "https://sites.google.com/view/fycd-tc/";   // 跳轉用
+    const SITE_EMBED_URL = "https://sites.google.com/embed/fycd-tc/"; // 嵌入用
     const container = document.querySelector('.glass-container');
 
     function detectClient(){
@@ -139,10 +146,18 @@
       document.addEventListener('click',requestFull,{once:true});
 
       if(c.inPWA){
-        window.location.href=SITE_URL;
+        // PWA 模式直接嵌入 iframe
+        container.style.opacity = '0';
+        setTimeout(()=>{
+          container.remove();
+          const iframe = document.createElement('iframe');
+          iframe.src = SITE_EMBED_URL;
+          document.body.appendChild(iframe);
+        },500);
         return;
       }
 
+      // 非 PWA 顯示安裝引導
       let hint='📲 建議安裝至桌面，享受全螢幕體驗。';
       if(c.isIOS && c.isSaf) hint='📲 在 Safari 底部「分享」→『加入主畫面』安裝。';
       else if(c.isAnd&&(c.isChr||c.isEdg)) hint='📲 點網址列右側「安裝圖示」或選單「加入主畫面」。';
@@ -154,16 +169,13 @@
 
       document.querySelector('.spinner').style.display='none';
 
-      // 已有按鈕就不重複創建
+      // 前往網站按鈕
       if(!document.getElementById('go-site-btn')){
         const btn = document.createElement('button');
         btn.id = 'go-site-btn';
         btn.className='action-button';
         btn.textContent='立即前往網站';
-        btn.onclick = () => {
-          const newWin = window.open(SITE_URL,'_blank','fullscreen=yes,scrollbars=yes,resizable=yes');
-          if(!newWin) window.location.href = SITE_URL;
-        };
+        btn.onclick = () => window.open(SITE_VIEW_URL,'_blank','fullscreen=yes,scrollbars=yes,resizable=yes');
         container.appendChild(btn);
       }
 
@@ -196,7 +208,8 @@
         }
       });
 
-      setTimeout(()=>{ if(!document.hidden) window.location.href=SITE_URL; },20000);
+      // 20 秒自動跳轉
+      setTimeout(()=>{ if(!document.hidden) window.location.href=SITE_VIEW_URL; },20000);
     });
 
     // 註冊 Service Worker 並檢查新版本
